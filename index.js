@@ -108,7 +108,7 @@ app.get("/", async (req, res) => {
       if (result) {
         let isTrue = await bcrypt.compare(req.body.password, result.password);
         if (isTrue) {
-          res.status(200).json({ message: "Login " });
+          res.status(200).json({ message: "Login" });
         } else {
           res.status(200).json({ message: "Check Email/Password" });
         }
@@ -291,6 +291,17 @@ app.post("/register", async (req, res) => {
     }
   });
 
+  app.get("/pizza-list", async (req,res) =>{
+    try {
+        let clientInfo = await mongoClient.connect(dbURL)
+        let db = clientInfo.db("UserData")
+        let result = await db.collection("pizzaName").find().toArray()
+        res.status(200)
+    } catch (error) {
+        console.log(error)
+        res.send(500)
+    }
+})
 
 app.get("/get-orders", async (req,res) =>{
     try {
