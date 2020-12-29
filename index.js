@@ -295,8 +295,9 @@ app.post("/register", async (req, res) => {
     try {
         let clientInfo = await mongoClient.connect(dbURL)
         let db = clientInfo.db("UserData")
-        let result = await db.collection("pizzaName").find().toArray()
-        res.status(200)
+        let data = await db.collection("pizzaName").find().toArray()
+        res.status(200).json({ data });
+        clientInfo.close();
     } catch (error) {
         console.log(error)
         res.send(500)
