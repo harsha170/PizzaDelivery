@@ -108,7 +108,7 @@ app.get("/", async (req, res) => {
       if (result) {
         let isTrue = await bcrypt.compare(req.body.password, result.password);
         if (isTrue) {
-          res.status(200).json({ message: "Login" });
+          res.status(200).json({ message: "Login success" });
         } else {
           res.status(200).json({ message: "Check Email/Password" });
         }
