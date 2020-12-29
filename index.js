@@ -100,15 +100,13 @@ app.get("/", async (req, res) => {
     try {
       let clientInfo = await mongoClient.connect(dbURL);
       let db = clientInfo.db("UserData");
-      console.log(req,'req')
-      console.log("test")
       let result = await db
         .collection("users")
         .findOne({ email: req.body.email });
       if (result) {
         let isTrue = await bcrypt.compare(req.body.password, result.password);
         if (isTrue) {
-          res.status(200).json({ message: "Login " });
+          res.status(200).json({ message: "Login Success" });
         } else {
           res.status(200).json({ message: "Check Email/Password" });
         }
