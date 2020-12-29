@@ -291,7 +291,7 @@ app.post("/register", async (req, res) => {
     }
   });
 
-  app.get("/pizza-list", async (req,res) =>{
+  app.get("/pizzas", async (req,res) =>{
     try {
         let clientInfo = await mongoClient.connect(dbURL)
         let db = clientInfo.db("UserData")
