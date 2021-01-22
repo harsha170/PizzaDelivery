@@ -177,7 +177,7 @@ app.get("/", async (req, res) => {
                     to:  req.body.email, 
                     subject: "Reset Password ", 
                     text: "Reset password", 
-                    html: `<p>Here is the link to reset your password</p><br><a href="http://localhost:5000/auth/${req.body.email}">Click here</a>`, 
+                    html: `<p>Here is the link to reset your password</p><br><a href="https://pizza-backend-1.herokuapp.com/auth/${req.body.email}">Click here</a>`, 
                   });
             res.status(200).json({message:"user exists"})
             clientInfo.close()
@@ -332,7 +332,7 @@ app.post("/update-orders", async (req,res) =>{
     try {
         let clientInfo = await mongoClient.connect(dbURL)
         let db = clientInfo.db("UserData")
-        let result = await db.collection("orders").findOne({id:req.body.id})
+        let result = await db.collection("orders").updateOne({id:req.body.id})
         if(result){
             res.status(200).json({ message: "Order Created" })
         }
