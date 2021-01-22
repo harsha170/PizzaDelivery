@@ -261,7 +261,7 @@ app.get("/activate/:mail/:string", async (req, res) => {
           { email: req.params.mail },
           { $set: { string: "", status: true } }
         );
-      res.redirect(`https://my--drive.herokuapp.com`);
+      res.redirect(`https://localhost:3000`);
       res.status(200).json({ message: "activated" });
     } else {
       res.status(200).json({ message: "Link Expired" });
