@@ -56,43 +56,43 @@ app.get("/", async (req, res) => {
   });
 
 // verify user by sending mail
-  app.post("/verify-user", async (req, res) => {
-    try {
-      let clientInfo = await mongoClient.connect(dbURL);
-      let db = clientInfo.db("UserData");
-      let result = await db
-        .collection("users")
-        .findOne({ email: req.body.email });
-      if (result) {
-        res.status(400).json({ message: "User already registered" });
-        clientInfo.close();
-      } else {
-            var string = Math.random().toString(36).substr(2,10)
-            let transporter = nodemailer.createTransport({
-                host: "smtp.gmail.com",
-                port: 587,
-                secure: false,
-                auth: {
-                  user: process.env.SENDER, // generated ethereal user
-                  pass: process.env.PASS, // generated ethereal password
-                },
-            });
-                let info = await transporter.sendMail({
-                    from: process.env.SENDER, 
-                    to:  req.body.email, 
-                    subject: "Registration", 
-                    text: "Pizza delivery Registration", 
-                    html: `<p>Here is the link to register</p><br><a href="http://localhost:3000/register.html/${req.body.email}">Click here</a>`, 
-                  });
+  // app.post("/verify-user", async (req, res) => {
+  //   try {
+  //     let clientInfo = await mongoClient.connect(dbURL);
+  //     let db = clientInfo.db("UserData");
+  //     let result = await db
+  //       .collection("users")
+  //       .findOne({ email: req.body.email });
+  //     if (result) {
+  //       res.status(400).json({ message: "User already registered" });
+  //       clientInfo.close();
+  //     } else {
+  //           var string = Math.random().toString(36).substr(2,10)
+  //           let transporter = nodemailer.createTransport({
+  //               host: "smtp.gmail.com",
+  //               port: 587,
+  //               secure: false,
+  //               auth: {
+  //                 user: process.env.SENDER, // generated ethereal user
+  //                 pass: process.env.PASS, // generated ethereal password
+  //               },
+  //           });
+  //               let info = await transporter.sendMail({
+  //                   from: process.env.SENDER, 
+  //                   to:  req.body.email, 
+  //                   subject: "Registration", 
+  //                   text: "Pizza delivery Registration", 
+  //                   html: `<p>Here is the link to register</p><br><a href="http://localhost:3000/register.html/${req.body.email}">Click here</a>`, 
+  //                 });
                     
-                    await db.collection("users").insertOne(req.body);
-                    res.status(200).json({ message: "Verification mail sent" });
-                    clientInfo.close();
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  });
+  //                   await db.collection("users").insertOne(req.body);
+  //                   res.status(200).json({ message: "Verification mail sent" });
+  //                   clientInfo.close();
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  // });
   
 // user login
 
@@ -191,24 +191,116 @@ app.get("/", async (req, res) => {
     }
 })
 
-// register user and set password
+
+
+
+
+
 app.post("/register", async (req, res) => {
-    try {
-      let clientInfo = await mongoClient.connect(dbURL);
-      let db = clientInfo.db("UserData");
-      let result = await db
+  try {
+    let clientInfo = await mongoClient.connect(dbURL);
+    let db = clientInfo.db("UserData");
+    let result = await db
+      .collection("users")
+      .findOne({ email: req.body.email });
+    if (result) {
+      res.status(400).json({ message: "User already registered" });
+      clientInfo.close();
+    } else {
+      let salt = await bcrypt.genSalt(15);
+      let hash = await bcrypt.hash(req.body.password, salt);
+      req.body.password = hash;
+      await db.collection("Users").insertOne(req.body);
+
+      var string = Math.random().toString(36).substr(2, 10);
+      let transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false, // true for 465, false for other ports
+        auth: {
+          user: process.env.SENDER, // generated ethereal user
+          pass: process.env.PASS, // generated ethereal password
+        },
+      });
+
+      // send mail with defined transport object
+      let info = await transporter.sendMail({
+        from: process.env.SENDER, // sender address
+        to: req.body.email, // list of receivers
+        subject: "Activate Account ✔", // Subject line
+        text: "Hello world?", // plain text body
+        html: `<a href="https://pizza-backend-1.herokuapp.com/activate/${req.body.email}/${string}">Click on this link to activate your account</a>`, // html body
+      });
+      await db
         .collection("users")
-        let salt = await bcrypt.genSalt(15);
-        let hash = await bcrypt.hash(req.body.password, salt);
-        req.body.password = hash;
-        await db.collection("users").insertOne(req.body);
-        res.status(200).json({ message: "User registered" });
-        clientInfo.close();
-      
-    } catch (error) {
-      console.log(error);
+        .updateOne({ email: req.body.email }, { $set: { string: string } });
+      res.status(200).json({
+        message:
+          "Please Click on conformation link send to your mail to activate",
+        status: "sent",
+      });
+      clientInfo.close();
     }
-  });
+  } catch (error) {
+    console.log(error);
+  }
+});
+// api for activation account //
+app.get("/activate/:mail/:string", async (req, res) => {
+  try {
+    let clientInfo = await mongoClient.connect(dbURL);
+    let db = clientInfo.db("UserData");
+    let result = await db
+      .collection("users")
+      .findOne({ email: req.params.mail });
+
+    if (result.string == req.params.string) {
+      await db
+        .collection("users")
+        .updateOne(
+          { email: req.params.mail },
+          { $set: { string: "", status: true } }
+        );
+      res.redirect(`https://my--drive.herokuapp.com`);
+      res.status(200).json({ message: "activated" });
+    } else {
+      res.status(200).json({ message: "Link Expired" });
+    }
+
+    clientInfo.close();
+  } catch (error) {
+    console.log(error);
+  }
+});
+
+
+
+
+
+// register user and set password
+// app.post("/register", async (req, res) => {
+//     try {
+//       let clientInfo = await mongoClient.connect(dbURL);
+//       let db = clientInfo.db("UserData");
+//       let result = await db
+//         .collection("users")
+//         let salt = await bcrypt.genSalt(15);
+//         let hash = await bcrypt.hash(req.body.password, salt);
+//         req.body.password = hash;
+
+//         let result = await db.collection("users").insertOne(req.body);
+
+      
+
+//         res.status(200).json({ message: "User registered" });
+//         clientInfo.close();
+      
+//   }
+    
+//     catch (error) {
+//       console.log(error);
+//     }
+//   });
 
 // admin-login
 
