@@ -210,7 +210,7 @@ app.post("/register", async (req, res) => {
       let salt = await bcrypt.genSalt(15);
       let hash = await bcrypt.hash(req.body.password, salt);
       req.body.password = hash;
-      await db.collection("Users").insertOne(req.body);
+      await db.collection("users").insertOne(req.body);
 
       var string = Math.random().toString(36).substr(2, 10);
       let transporter = nodemailer.createTransport({
