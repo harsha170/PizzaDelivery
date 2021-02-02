@@ -17,7 +17,7 @@ app.use(express.json());
 app.use(cors());
 
 
-app.post("/register-1", async (req, res) => {
+app.post("/register", async (req, res) => {
   try {
     let clientInfo = await mongoClient.connect(dbURL);
     let db = clientInfo.db("UserData");
@@ -196,7 +196,7 @@ app.get("/", async (req, res) => {
 
 
 
-app.post("/register", async (req, res) => {
+app.post("/register-1", async (req, res) => {
 
   try {
     let clientInfo = await mongoClient.connect(dbURL);
